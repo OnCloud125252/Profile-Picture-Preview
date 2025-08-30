@@ -1,8 +1,7 @@
 "use client";
 
-import { Download, Phone, Search, Video } from "lucide-react";
+import { Phone, Search, Video } from "lucide-react";
 import { useTheme } from "next-themes";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface WhatsAppPreviewProps {
@@ -13,21 +12,11 @@ export default function WhatsAppPreview({ imageUrl }: WhatsAppPreviewProps) {
   const { theme } = useTheme();
   const isDark = theme === "dark";
 
-  const downloadImage = () => {
-    const link = document.createElement("a");
-    link.href = imageUrl;
-    link.download = "whatsapp-profile-picture.jpg";
-    link.click();
-  };
-
   return (
     <Card>
       <CardHeader className="pb-4">
         <CardTitle className="flex justify-between items-center">
           <span className="text-lg">WhatsApp</span>
-          <Button size="icon" variant="ghost" onClick={downloadImage}>
-            <Download className="h-4 w-4" />
-          </Button>
         </CardTitle>
       </CardHeader>
       <CardContent>

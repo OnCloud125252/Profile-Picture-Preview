@@ -1,7 +1,5 @@
 "use client";
 
-import { Download } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface DiscordPreviewProps {
@@ -9,21 +7,11 @@ interface DiscordPreviewProps {
 }
 
 export default function DiscordPreview({ imageUrl }: DiscordPreviewProps) {
-  const downloadImage = () => {
-    const link = document.createElement("a");
-    link.href = imageUrl;
-    link.download = "discord-profile-picture.jpg";
-    link.click();
-  };
-
   return (
     <Card>
       <CardHeader className="pb-4">
         <CardTitle className="flex justify-between items-center">
           <span className="text-lg">Discord</span>
-          <Button size="icon" variant="ghost" onClick={downloadImage}>
-            <Download className="h-4 w-4" />
-          </Button>
         </CardTitle>
       </CardHeader>
       <CardContent>
