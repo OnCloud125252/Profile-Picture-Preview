@@ -27,7 +27,7 @@ export default function GitHubPreview({ imageUrl }: GitHubPreviewProps) {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="bg-gray-50 border rounded-lg p-4">
+        <div className="bg-gray-50 border rounded-lg p-4 overflow-scroll">
           <div className="flex space-x-4">
             {/** biome-ignore lint/performance/noImgElement: using base64 */}
             <img

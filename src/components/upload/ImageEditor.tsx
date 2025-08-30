@@ -1,8 +1,9 @@
 "use client";
 
-import { Expand, ZoomIn, ZoomOut } from "lucide-react";
+import { Expand } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
 
 interface ImageEditorProps {
@@ -27,6 +28,8 @@ export default function ImageEditor({
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const operationIdRef = useRef(0);
   const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [minScale, setMinScale] = useState(1);
+  const maxScale = 3; // 3x = 300%
 
   // Constrain position after scale changes
   const constrainPosition = useCallback(
@@ -64,6 +67,7 @@ export default function ImageEditor({
       const scaleY = height / img.height;
       const initialScale = Math.max(scaleX, scaleY);
       setScale(initialScale);
+      setMinScale(initialScale);
 
       // Center the image or constrain if too large
       const initialPosition = {
@@ -146,6 +150,40 @@ export default function ImageEditor({
       drawImage();
     }
   }, [drawImage, isLoading]);
+
+  // Add wheel event listener with passive: false
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const handleWheelEvent = (e: WheelEvent) => {
+      e.preventDefault();
+      if (!imageRef.current) return;
+
+      const delta = e.deltaY > 0 ? 0.9 : 1.1;
+      const newScale = Math.min(Math.max(scale * delta, minScale), maxScale);
+      const scaleFactor = newScale / scale;
+
+      // Calculate center point
+      const centerX = width / 2;
+      const centerY = height / 2;
+
+      // Adjust position to zoom towards/from center
+      const newPosition = {
+        x: centerX - (centerX - position.x) * scaleFactor,
+        y: centerY - (centerY - position.y) * scaleFactor,
+      };
+
+      setScale(newScale);
+      setPosition(constrainPosition(newPosition, newScale));
+    };
+
+    canvas.addEventListener("wheel", handleWheelEvent, { passive: false });
+
+    return () => {
+      canvas.removeEventListener("wheel", handleWheelEvent);
+    };
+  }, [scale, position, minScale, width, height, constrainPosition]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -254,19 +292,7 @@ export default function ImageEditor({
     exportCanvas();
   };
 
-  // Zoom handlers
-  const handleZoomIn = () => {
-    const newScale = Math.min(scale * 1.2, 5);
-    setScale(newScale);
-    setPosition((prev) => constrainPosition(prev, newScale));
-  };
-
-  const handleZoomOut = () => {
-    const newScale = Math.max(scale * 0.8, 0.1);
-    setScale(newScale);
-    setPosition((prev) => constrainPosition(prev, newScale));
-  };
-
+  // Reset handler
   const handleReset = () => {
     const img = imageRef.current;
     if (!img) {
@@ -284,19 +310,10 @@ export default function ImageEditor({
     setPosition(constrainPosition(initialPosition, initialScale));
   };
 
-  // Mouse wheel zoom
-  const handleWheel = (e: React.WheelEvent<HTMLCanvasElement>) => {
-    e.preventDefault();
-    const delta = e.deltaY > 0 ? 0.9 : 1.1;
-    const newScale = Math.min(Math.max(scale * delta, 0.1), 5);
-    setScale(newScale);
-    setPosition((prev) => constrainPosition(prev, newScale));
-  };
-
   return (
     <div className="relative">
       <div className="relative flex justify-center mb-4">
-        <div className="relative">
+        <div className="relative overflow-hidden rounded-lg">
           <canvas
             ref={canvasRef}
             width={width}
@@ -312,7 +329,6 @@ export default function ImageEditor({
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
-            onWheel={handleWheel}
           />
           <div
             className="absolute inset-0 rounded-lg pointer-events-none"
@@ -320,6 +336,12 @@ export default function ImageEditor({
               background: `radial-gradient(farthest-side at center, transparent calc(100%), rgba(160, 160, 160, 0.5) calc(100%))`,
             }}
           />
+          <div className="absolute pointer-events-none h-[2px] w-full bg-[rgba(160,160,160,0.5)] top-1/3 -mt-[1px]" />
+          <div className="absolute pointer-events-none h-[2px] w-full bg-[rgba(160,160,160,0.5)] top-2/3 -mt-[1px]" />
+          <div className="absolute pointer-events-none w-[2px] h-full bg-[rgba(160,160,160,0.5)] left-1/3 top-0 -ml-[1px]" />
+          <div className="absolute pointer-events-none w-[2px] h-full bg-[rgba(160,160,160,0.5)] left-2/3 top-0 -ml-[1px]" />
+          <div className="absolute pointer-events-none h-[2px] w-[calc(100%*1.5)] bg-[rgba(160,160,160,0.5)] top-1/2 -mt-[1px] -left-1/4 rotate-45" />
+          <div className="absolute pointer-events-none h-[2px] w-[calc(100%*1.5)] bg-[rgba(160,160,160,0.5)] top-1/2 -mt-[1px] -left-1/4 -rotate-45" />
           {isLoading && (
             <div className="absolute inset-0 flex items-center justify-center bg-muted/50 rounded-lg">
               <div className="text-muted-foreground">Loading image...</div>
@@ -328,27 +350,45 @@ export default function ImageEditor({
         </div>
       </div>
 
-      <div className="flex justify-center gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={handleZoomOut}
-          disabled={scale <= 0.1}
-          className="cursor-pointer"
-        >
-          <ZoomOut className="h-4 w-4" />
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={handleZoomIn}
-          disabled={scale >= 5}
-          className="cursor-pointer"
-        >
-          <ZoomIn className="h-4 w-4" />
-        </Button>
+      <div className="flex flex-col items-center">
+        <p className="text-center text-sm text-muted-foreground mb-3">
+          Drag to move • Scroll to zoom •{" "}
+          {Math.round(((scale - minScale) / (maxScale - minScale)) * 300)}%
+        </p>
+        <div className="flex items-center gap-4 w-full max-w-xs mb-2">
+          <span className="text-sm text-muted-foreground min-w-[3rem] text-right">
+            0%
+          </span>
+          <Slider
+            value={[((scale - minScale) / (maxScale - minScale)) * 300]}
+            min={0}
+            max={300}
+            step={1}
+            onValueChange={(values) => {
+              const percent = values[0];
+              const newScale =
+                minScale + (percent / 300) * (maxScale - minScale);
+
+              // Calculate center point
+              const centerX = width / 2;
+              const centerY = height / 2;
+              const scaleFactor = newScale / scale;
+
+              // Adjust position to zoom towards/from center
+              const newPosition = {
+                x: centerX - (centerX - position.x) * scaleFactor,
+                y: centerY - (centerY - position.y) * scaleFactor,
+              };
+
+              setScale(newScale);
+              setPosition(constrainPosition(newPosition, newScale));
+            }}
+            className="flex-1 cursor-ew-resize"
+          />
+          <span className="text-sm text-muted-foreground min-w-[3rem]">
+            300%
+          </span>
+        </div>
         <Button
           type="button"
           variant="outline"
@@ -357,12 +397,9 @@ export default function ImageEditor({
           className="cursor-pointer"
         >
           <Expand className="h-4 w-4" />
+          <span className="ml-2">Reset scale and position</span>
         </Button>
       </div>
-
-      <p className="text-center text-sm text-muted-foreground">
-        Drag to move • Scroll to zoom • {Math.round(scale * 100)}%
-      </p>
     </div>
   );
 }

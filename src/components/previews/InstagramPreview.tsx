@@ -27,7 +27,16 @@ export default function InstagramPreview({ imageUrl }: InstagramPreviewProps) {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="bg-white border rounded-lg">
+        <div className="text-center">
+          {/** biome-ignore lint/performance/noImgElement: using base64 */}
+          <img
+            src={imageUrl}
+            alt="Instagram profile circle"
+            className="w-20 h-20 mx-auto rounded-full object-cover border-2 border-pink-500 p-0.5"
+          />
+          <p className="text-xs mt-2 font-semibold">your_username</p>
+        </div>
+        <div className="mt-4 bg-white border rounded-lg">
           <div className="flex items-center justify-between p-3 border-b">
             <div className="flex items-center space-x-3">
               {/** biome-ignore lint/performance/noImgElement: using base64 */}
@@ -67,15 +76,6 @@ export default function InstagramPreview({ imageUrl }: InstagramPreviewProps) {
               pic!
             </p>
           </div>
-        </div>
-        <div className="mt-4 text-center">
-          {/** biome-ignore lint/performance/noImgElement: using base64 */}
-          <img
-            src={imageUrl}
-            alt="Instagram profile circle"
-            className="w-20 h-20 mx-auto rounded-full object-cover border-2 border-pink-500 p-0.5"
-          />
-          <p className="text-xs mt-2 font-semibold">your_username</p>
         </div>
       </CardContent>
     </Card>

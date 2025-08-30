@@ -42,19 +42,15 @@ export default function FacebookPreview({ imageUrl }: FacebookPreviewProps) {
           </div>
           <p className="mt-3 text-sm">Check out my new profile picture!</p>
         </div>
-        <div className="mt-4 bg-white border rounded-lg p-4">
-          <div className="relative">
+        <div className="mt-4 bg-white border rounded-lg p-4 flex justify-center">
+          <div className="w-fit h-fit relative">
             {/** biome-ignore lint/performance/noImgElement: using base64 */}
             <img
               src={imageUrl}
               alt="Facebook profile large"
-              className="w-40 h-40 mx-auto rounded-full object-cover border-4 border-white shadow-lg"
+              className="w-40 h-40 mx-auto rounded-full object-cover border-4 border-white"
             />
-            <div className="absolute bottom-0 right-12 bg-blue-500 text-white rounded-full p-2">
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M10 2a8 8 0 100 16 8 8 0 000-16zM6.5 9a.5.5 0 000 1h3v3a.5.5 0 001 0v-3h3a.5.5 0 000-1h-3V6a.5.5 0 00-1 0v3h-3z" />
-              </svg>
-            </div>
+            <div className="absolute bottom-2 right-2 bg-blue-500 rounded-full p-3.5 border-4 border-background" />
           </div>
         </div>
       </CardContent>

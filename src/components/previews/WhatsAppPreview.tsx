@@ -42,9 +42,9 @@ export default function WhatsAppPreview({ imageUrl }: WhatsAppPreviewProps) {
               </div>
             </div>
             <div className="flex space-x-3">
-              <Video className="w-5 h-5 cursor-pointer" />
-              <Phone className="w-5 h-5 cursor-pointer" />
-              <Search className="w-5 h-5 cursor-pointer" />
+              <Video className="w-5 h-5" />
+              <Phone className="w-5 h-5" />
+              <Search className="w-5 h-5" />
             </div>
           </div>
           <div className="bg-[#E5DDD5] p-4">
