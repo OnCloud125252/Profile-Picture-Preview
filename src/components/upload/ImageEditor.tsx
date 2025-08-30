@@ -181,28 +181,36 @@ export default function ImageEditor({
   return (
     <div className="relative">
       <div className="relative flex justify-center mb-4">
-        <canvas
-          ref={canvasRef}
-          width={width}
-          height={height}
-          className={cn(
-            "border border-gray-500 rounded-lg",
-            isDragging ? "cursor-grabbing" : "cursor-grab",
+        <div className="relative">
+          <canvas
+            ref={canvasRef}
+            width={width}
+            height={height}
+            className={cn(
+              "border border-gray-500 rounded-lg",
+              isDragging ? "cursor-grabbing" : "cursor-grab",
+            )}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseLeave}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            onWheel={handleWheel}
+          />
+          <div
+            className="absolute inset-0 rounded-lg pointer-events-none"
+            style={{
+              background: `radial-gradient(farthest-side at center, transparent calc(100%), rgba(160, 160, 160, 0.5) calc(100%))`,
+            }}
+          />
+          {isLoading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-muted/50 rounded-lg">
+              <div className="text-muted-foreground">Loading image...</div>
+            </div>
           )}
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseLeave}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          onWheel={handleWheel}
-        />
-        {isLoading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-muted/50 rounded-lg">
-            <div className="text-muted-foreground">Loading image...</div>
-          </div>
-        )}
+        </div>
       </div>
 
       <div className="flex justify-center gap-2">
