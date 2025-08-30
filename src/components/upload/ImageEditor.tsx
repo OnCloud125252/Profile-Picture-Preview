@@ -154,11 +154,15 @@ export default function ImageEditor({
   // Add wheel event listener with passive: false
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas) {
+      return;
+    }
 
     const handleWheelEvent = (e: WheelEvent) => {
       e.preventDefault();
-      if (!imageRef.current) return;
+      if (!imageRef.current) {
+        return;
+      }
 
       const delta = e.deltaY > 0 ? 0.9 : 1.1;
       const newScale = Math.min(Math.max(scale * delta, minScale), maxScale);
@@ -331,17 +335,17 @@ export default function ImageEditor({
             onTouchEnd={handleTouchEnd}
           />
           <div
-            className="absolute inset-0 rounded-lg pointer-events-none"
+            className="absolute inset-0 rounded-lg pointer-events-none z-40"
             style={{
-              background: `radial-gradient(farthest-side at center, transparent calc(100%), rgba(160, 160, 160, 0.5) calc(100%))`,
+              background: `radial-gradient(farthest-side at center, transparent calc(100%), rgba(90, 90, 90, 0.7) calc(100%))`,
             }}
           />
-          <div className="absolute pointer-events-none h-[2px] w-full bg-[rgba(160,160,160,0.5)] top-1/3 -mt-[1px]" />
-          <div className="absolute pointer-events-none h-[2px] w-full bg-[rgba(160,160,160,0.5)] top-2/3 -mt-[1px]" />
-          <div className="absolute pointer-events-none w-[2px] h-full bg-[rgba(160,160,160,0.5)] left-1/3 top-0 -ml-[1px]" />
-          <div className="absolute pointer-events-none w-[2px] h-full bg-[rgba(160,160,160,0.5)] left-2/3 top-0 -ml-[1px]" />
-          <div className="absolute pointer-events-none h-[2px] w-[calc(100%*1.5)] bg-[rgba(160,160,160,0.5)] top-1/2 -mt-[1px] -left-1/4 rotate-45" />
-          <div className="absolute pointer-events-none h-[2px] w-[calc(100%*1.5)] bg-[rgba(160,160,160,0.5)] top-1/2 -mt-[1px] -left-1/4 -rotate-45" />
+          <div className="absolute pointer-events-none h-[2px] w-full bg-[rgba(160,160,160,0.5)] top-1/3 -mt-[1px] z-50" />
+          <div className="absolute pointer-events-none h-[2px] w-full bg-[rgba(160,160,160,0.5)] top-2/3 -mt-[1px] z-50" />
+          <div className="absolute pointer-events-none w-[2px] h-full bg-[rgba(160,160,160,0.5)] left-1/3 top-0 -ml-[1px] z-50" />
+          <div className="absolute pointer-events-none w-[2px] h-full bg-[rgba(160,160,160,0.5)] left-2/3 top-0 -ml-[1px] z-50" />
+          <div className="absolute pointer-events-none h-[2px] w-[calc(100%*1.5)] bg-[rgba(160,160,160,0.5)] top-1/2 -mt-[1px] -left-1/4 rotate-45 z-50" />
+          <div className="absolute pointer-events-none h-[2px] w-[calc(100%*1.5)] bg-[rgba(160,160,160,0.5)] top-1/2 -mt-[1px] -left-1/4 -rotate-45 z-50" />
           {isLoading && (
             <div className="absolute inset-0 flex items-center justify-center bg-muted/50 rounded-lg">
               <div className="text-muted-foreground">Loading image...</div>

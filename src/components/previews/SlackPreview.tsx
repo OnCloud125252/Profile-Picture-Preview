@@ -1,6 +1,7 @@
 "use client";
 
 import { Download } from "lucide-react";
+import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -9,6 +10,9 @@ interface SlackPreviewProps {
 }
 
 export default function SlackPreview({ imageUrl }: SlackPreviewProps) {
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
+
   const downloadImage = () => {
     const link = document.createElement("a");
     link.href = imageUrl;
@@ -27,7 +31,13 @@ export default function SlackPreview({ imageUrl }: SlackPreviewProps) {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="bg-white border rounded-lg p-4">
+        <div
+          className="border rounded-lg p-4"
+          style={{
+            backgroundColor: isDark ? "#1A1D21" : "#FFFFFF",
+            borderColor: isDark ? "#565856" : "#E1E1E1",
+          }}
+        >
           <div className="flex items-start space-x-3 mb-4">
             {/** biome-ignore lint/performance/noImgElement: using base64 */}
             <img
@@ -37,16 +47,37 @@ export default function SlackPreview({ imageUrl }: SlackPreviewProps) {
             />
             <div className="flex-1">
               <div className="flex items-center space-x-2">
-                <span className="font-semibold text-sm">Your Name</span>
-                <span className="text-xs text-gray-500">12:34 PM</span>
+                <span
+                  className="font-semibold text-sm"
+                  style={{ color: isDark ? "#D1D2D3" : "#1D1C1D" }}
+                >
+                  Your Name
+                </span>
+                <span
+                  className="text-xs"
+                  style={{ color: isDark ? "#ABABAD" : "#616061" }}
+                >
+                  12:34 PM
+                </span>
               </div>
-              <p className="text-sm mt-1">
+              <p
+                className="text-sm mt-1"
+                style={{ color: isDark ? "#D1D2D3" : "#1D1C1D" }}
+              >
                 Hey team! Just updated my profile picture 📸
               </p>
             </div>
           </div>
-          <div className="border-l-4 border-gray-300 pl-3 ml-5">
-            <p className="text-xs text-gray-500">Thread</p>
+          <div
+            className="border-l-4 pl-3 ml-5"
+            style={{ borderColor: isDark ? "#565856" : "#DDDDDD" }}
+          >
+            <p
+              className="text-xs"
+              style={{ color: isDark ? "#ABABAD" : "#616061" }}
+            >
+              Thread
+            </p>
             <div className="flex items-center space-x-2 mt-1">
               {/** biome-ignore lint/performance/noImgElement: using base64 */}
               <img
@@ -54,12 +85,25 @@ export default function SlackPreview({ imageUrl }: SlackPreviewProps) {
                 alt="Slack reply"
                 className="w-6 h-6 rounded object-cover"
               />
-              <p className="text-sm">Looking good! 👍</p>
+              <p
+                className="text-sm"
+                style={{ color: isDark ? "#D1D2D3" : "#1D1C1D" }}
+              >
+                Looking good! 👍
+              </p>
             </div>
           </div>
         </div>
-        <div className="mt-4 bg-gray-50 rounded-lg p-4">
-          <p className="text-xs font-semibold text-gray-600 mb-2">PROFILE</p>
+        <div
+          className="mt-4 rounded-lg p-4"
+          style={{ backgroundColor: isDark ? "#222529" : "#F8F8F8" }}
+        >
+          <p
+            className="text-xs font-semibold mb-2"
+            style={{ color: isDark ? "#ABABAD" : "#696969" }}
+          >
+            PROFILE
+          </p>
           <div className="flex items-center space-x-3">
             {/** biome-ignore lint/performance/noImgElement: using base64 */}
             <img
@@ -68,17 +112,44 @@ export default function SlackPreview({ imageUrl }: SlackPreviewProps) {
               className="w-16 h-16 rounded object-cover"
             />
             <div>
-              <h3 className="font-semibold">Your Name</h3>
-              <p className="text-sm text-gray-600">Active</p>
-              <p className="text-xs text-gray-500 mt-1">Local time: 12:34 PM</p>
+              <h3
+                className="font-semibold"
+                style={{ color: isDark ? "#D1D2D3" : "#1D1C1D" }}
+              >
+                Your Name
+              </h3>
+              <p
+                className="text-sm"
+                style={{ color: isDark ? "#3BB33D" : "#2D9E2E" }}
+              >
+                Active
+              </p>
+              <p
+                className="text-xs mt-1"
+                style={{ color: isDark ? "#ABABAD" : "#616061" }}
+              >
+                Local time: 12:34 PM
+              </p>
             </div>
           </div>
           <div className="mt-3 space-y-1">
-            <p className="text-sm">
-              <span className="text-gray-500">Title:</span> Software Developer
+            <p
+              className="text-sm"
+              style={{ color: isDark ? "#D1D2D3" : "#1D1C1D" }}
+            >
+              <span style={{ color: isDark ? "#ABABAD" : "#616061" }}>
+                Title:
+              </span>{" "}
+              Software Developer
             </p>
-            <p className="text-sm">
-              <span className="text-gray-500">Email:</span> you@example.com
+            <p
+              className="text-sm"
+              style={{ color: isDark ? "#D1D2D3" : "#1D1C1D" }}
+            >
+              <span style={{ color: isDark ? "#ABABAD" : "#616061" }}>
+                Email:
+              </span>{" "}
+              you@example.com
             </p>
           </div>
         </div>

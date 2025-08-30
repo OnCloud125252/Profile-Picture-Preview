@@ -1,6 +1,7 @@
 "use client";
 
 import { Bookmark, Download, Heart, MessageCircle, Send } from "lucide-react";
+import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -9,6 +10,9 @@ interface InstagramPreviewProps {
 }
 
 export default function InstagramPreview({ imageUrl }: InstagramPreviewProps) {
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
+
   const downloadImage = () => {
     const link = document.createElement("a");
     link.href = imageUrl;
@@ -32,12 +36,29 @@ export default function InstagramPreview({ imageUrl }: InstagramPreviewProps) {
           <img
             src={imageUrl}
             alt="Instagram profile circle"
-            className="w-20 h-20 mx-auto rounded-full object-cover border-2 border-pink-500 p-0.5"
+            className="w-20 h-20 mx-auto rounded-full object-cover border-2 p-0.5"
+            style={{ borderColor: "#E4405F" }}
           />
-          <p className="text-xs mt-2 font-semibold">your_username</p>
+          <p
+            className="text-xs mt-2 font-semibold"
+            style={{ color: isDark ? "#F5F5F5" : "#262626" }}
+          >
+            your_username
+          </p>
         </div>
-        <div className="mt-4 bg-white border rounded-lg">
-          <div className="flex items-center justify-between p-3 border-b">
+        <div
+          className="mt-4 border rounded-lg"
+          style={{
+            backgroundColor: isDark ? "#000000" : "#FFFFFF",
+            borderColor: isDark ? "#262626" : "#DBDBDB",
+          }}
+        >
+          <div
+            className="flex items-center justify-between p-3"
+            style={{
+              borderBottom: `1px solid ${isDark ? "#262626" : "#DBDBDB"}`,
+            }}
+          >
             <div className="flex items-center space-x-3">
               {/** biome-ignore lint/performance/noImgElement: using base64 */}
               <img
@@ -45,15 +66,27 @@ export default function InstagramPreview({ imageUrl }: InstagramPreviewProps) {
                 alt="Instagram profile"
                 className="w-8 h-8 rounded-full object-cover"
               />
-              <span className="font-semibold text-sm">your_username</span>
+              <span
+                className="font-semibold text-sm"
+                style={{ color: isDark ? "#F5F5F5" : "#262626" }}
+              >
+                your_username
+              </span>
             </div>
             <Button size="icon" variant="ghost">
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+              <svg
+                className="w-5 h-5"
+                fill={isDark ? "#F5F5F5" : "#262626"}
+                viewBox="0 0 20 20"
+              >
                 <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
               </svg>
             </Button>
           </div>
-          <div className="aspect-square bg-gray-100">
+          <div
+            className="aspect-square"
+            style={{ backgroundColor: isDark ? "#000000" : "#FAFAFA" }}
+          >
             {/** biome-ignore lint/performance/noImgElement: using base64 */}
             <img
               src={imageUrl}
@@ -64,14 +97,34 @@ export default function InstagramPreview({ imageUrl }: InstagramPreviewProps) {
           <div className="p-3">
             <div className="flex justify-between mb-3">
               <div className="flex space-x-4">
-                <Heart className="w-6 h-6 cursor-pointer hover:text-red-500" />
-                <MessageCircle className="w-6 h-6 cursor-pointer" />
-                <Send className="w-6 h-6 cursor-pointer" />
+                <Heart
+                  className="w-6 h-6 cursor-pointer hover:text-[#ED4956]"
+                  style={{ color: isDark ? "#F5F5F5" : "#262626" }}
+                />
+                <MessageCircle
+                  className="w-6 h-6 cursor-pointer"
+                  style={{ color: isDark ? "#F5F5F5" : "#262626" }}
+                />
+                <Send
+                  className="w-6 h-6 cursor-pointer"
+                  style={{ color: isDark ? "#F5F5F5" : "#262626" }}
+                />
               </div>
-              <Bookmark className="w-6 h-6 cursor-pointer" />
+              <Bookmark
+                className="w-6 h-6 cursor-pointer"
+                style={{ color: isDark ? "#F5F5F5" : "#262626" }}
+              />
             </div>
-            <p className="font-semibold text-sm">1,234 likes</p>
-            <p className="text-sm mt-1">
+            <p
+              className="font-semibold text-sm"
+              style={{ color: isDark ? "#F5F5F5" : "#262626" }}
+            >
+              1,234 likes
+            </p>
+            <p
+              className="text-sm mt-1"
+              style={{ color: isDark ? "#F5F5F5" : "#262626" }}
+            >
               <span className="font-semibold">your_username</span> New profile
               pic!
             </p>

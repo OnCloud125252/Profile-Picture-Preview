@@ -1,6 +1,7 @@
 "use client";
 
 import { Download } from "lucide-react";
+import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -9,6 +10,9 @@ interface FacebookPreviewProps {
 }
 
 export default function FacebookPreview({ imageUrl }: FacebookPreviewProps) {
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
+
   const downloadImage = () => {
     const link = document.createElement("a");
     link.href = imageUrl;
@@ -27,7 +31,10 @@ export default function FacebookPreview({ imageUrl }: FacebookPreviewProps) {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="bg-gray-100 rounded-lg p-4">
+        <div
+          className="rounded-lg p-4"
+          style={{ backgroundColor: isDark ? "#242526" : "#F0F2F5" }}
+        >
           <div className="flex items-center space-x-3">
             {/** biome-ignore lint/performance/noImgElement: using base64 */}
             <img
@@ -36,21 +43,49 @@ export default function FacebookPreview({ imageUrl }: FacebookPreviewProps) {
               className="w-10 h-10 rounded-full object-cover"
             />
             <div>
-              <p className="font-semibold text-sm">Your Name</p>
-              <p className="text-xs text-gray-500">Just now · Public</p>
+              <p
+                className="font-semibold text-sm"
+                style={{ color: isDark ? "#E4E6EB" : "#050505" }}
+              >
+                Your Name
+              </p>
+              <p
+                className="text-xs"
+                style={{ color: isDark ? "#B0B3B8" : "#65676B" }}
+              >
+                Just now · Public
+              </p>
             </div>
           </div>
-          <p className="mt-3 text-sm">Check out my new profile picture!</p>
+          <p
+            className="mt-3 text-sm"
+            style={{ color: isDark ? "#E4E6EB" : "#050505" }}
+          >
+            Check out my new profile picture!
+          </p>
         </div>
-        <div className="mt-4 bg-white border rounded-lg p-4 flex justify-center">
+        <div
+          className="mt-4 border rounded-lg p-4 flex justify-center"
+          style={{
+            backgroundColor: isDark ? "#18191A" : "#FFFFFF",
+            borderColor: isDark ? "#3E4042" : "#DADDE1",
+          }}
+        >
           <div className="w-fit h-fit relative">
             {/** biome-ignore lint/performance/noImgElement: using base64 */}
             <img
               src={imageUrl}
               alt="Facebook profile large"
-              className="w-40 h-40 mx-auto rounded-full object-cover border-4 border-white"
+              className="w-40 h-40 mx-auto rounded-full object-cover border-4"
+              style={{ borderColor: isDark ? "#18191A" : "#FFFFFF" }}
             />
-            <div className="absolute bottom-2 right-2 bg-blue-500 rounded-full p-3.5 border-4 border-background" />
+            <div
+              className="absolute bottom-2 right-2 rounded-full p-3.5 border-4"
+              style={{
+                backgroundColor: "#1877F2",
+                borderColor: isDark ? "#18191A" : "#FFFFFF",
+              }}
+            />
           </div>
         </div>
       </CardContent>

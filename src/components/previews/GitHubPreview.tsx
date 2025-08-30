@@ -1,6 +1,7 @@
 "use client";
 
 import { Download, Link2, Mail, MapPin, Users } from "lucide-react";
+import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -9,6 +10,9 @@ interface GitHubPreviewProps {
 }
 
 export default function GitHubPreview({ imageUrl }: GitHubPreviewProps) {
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
+
   const downloadImage = () => {
     const link = document.createElement("a");
     link.href = imageUrl;
@@ -27,19 +31,39 @@ export default function GitHubPreview({ imageUrl }: GitHubPreviewProps) {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="bg-gray-50 border rounded-lg p-4 overflow-scroll">
+        <div
+          className="border rounded-lg p-4 overflow-scroll"
+          style={{
+            backgroundColor: isDark ? "#0D1117" : "#FFFFFF",
+            borderColor: isDark ? "#30363D" : "#D0D7DE",
+          }}
+        >
           <div className="flex space-x-4">
             {/** biome-ignore lint/performance/noImgElement: using base64 */}
             <img
               src={imageUrl}
               alt="GitHub profile"
-              className="w-20 h-20 rounded-full object-cover border-2 border-gray-200"
+              className="w-20 h-20 rounded-full object-cover border-2"
+              style={{ borderColor: isDark ? "#30363D" : "#D0D7DE" }}
             />
             <div className="flex-1">
-              <h3 className="text-xl font-semibold">Your Name</h3>
-              <p className="text-gray-600">username</p>
-              <p className="text-sm mt-2">Your bio goes here</p>
-              <div className="flex items-center space-x-4 mt-3 text-sm text-gray-600">
+              <h3
+                className="text-xl font-semibold"
+                style={{ color: isDark ? "#F0F6FC" : "#1F2328" }}
+              >
+                Your Name
+              </h3>
+              <p style={{ color: isDark ? "#8B949E" : "#656D76" }}>username</p>
+              <p
+                className="text-sm mt-2"
+                style={{ color: isDark ? "#F0F6FC" : "#1F2328" }}
+              >
+                Your bio goes here
+              </p>
+              <div
+                className="flex items-center space-x-4 mt-3 text-sm"
+                style={{ color: isDark ? "#8B949E" : "#656D76" }}
+              >
                 <div className="flex items-center space-x-1">
                   <Users className="w-4 h-4" />
                   <span>123 followers · 45 following</span>
@@ -47,7 +71,10 @@ export default function GitHubPreview({ imageUrl }: GitHubPreviewProps) {
               </div>
             </div>
           </div>
-          <div className="mt-4 flex items-center space-x-4 text-sm text-gray-600">
+          <div
+            className="mt-4 flex items-center space-x-4 text-sm"
+            style={{ color: isDark ? "#8B949E" : "#656D76" }}
+          >
             <div className="flex items-center space-x-1">
               <MapPin className="w-4 h-4" />
               <span>Location</span>
@@ -63,13 +90,45 @@ export default function GitHubPreview({ imageUrl }: GitHubPreviewProps) {
           </div>
         </div>
         <div className="mt-4 grid grid-cols-2 gap-2">
-          <div className="bg-green-50 border border-green-200 rounded p-2 text-center">
-            <p className="text-xs text-gray-600">Contributions</p>
-            <p className="text-lg font-bold">1,234</p>
+          <div
+            className="border rounded p-2 text-center"
+            style={{
+              backgroundColor: isDark ? "#0F3320" : "#DAFBE1",
+              borderColor: isDark ? "#2EA04326" : "#1F883D26",
+            }}
+          >
+            <p
+              className="text-xs"
+              style={{ color: isDark ? "#8B949E" : "#656D76" }}
+            >
+              Contributions
+            </p>
+            <p
+              className="text-lg font-bold"
+              style={{ color: isDark ? "#3FB950" : "#1A7F37" }}
+            >
+              1,234
+            </p>
           </div>
-          <div className="bg-blue-50 border border-blue-200 rounded p-2 text-center">
-            <p className="text-xs text-gray-600">Repositories</p>
-            <p className="text-lg font-bold">42</p>
+          <div
+            className="border rounded p-2 text-center"
+            style={{
+              backgroundColor: isDark ? "#0C2D6B" : "#DDF4FF",
+              borderColor: isDark ? "#388BFD26" : "#0969DA26",
+            }}
+          >
+            <p
+              className="text-xs"
+              style={{ color: isDark ? "#8B949E" : "#656D76" }}
+            >
+              Repositories
+            </p>
+            <p
+              className="text-lg font-bold"
+              style={{ color: isDark ? "#58A6FF" : "#0969DA" }}
+            >
+              42
+            </p>
           </div>
         </div>
       </CardContent>

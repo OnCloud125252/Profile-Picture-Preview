@@ -1,6 +1,7 @@
 "use client";
 
 import { Download, Heart, MessageCircle, Repeat2, Share } from "lucide-react";
+import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -9,6 +10,9 @@ interface TwitterPreviewProps {
 }
 
 export default function TwitterPreview({ imageUrl }: TwitterPreviewProps) {
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
+
   const downloadImage = () => {
     const link = document.createElement("a");
     link.href = imageUrl;
@@ -27,7 +31,13 @@ export default function TwitterPreview({ imageUrl }: TwitterPreviewProps) {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="bg-white border rounded-2xl p-4">
+        <div
+          className="border rounded-2xl p-4"
+          style={{
+            backgroundColor: isDark ? "#000000" : "#FFFFFF",
+            borderColor: isDark ? "#2F3336" : "#EFF3F4",
+          }}
+        >
           <div className="flex space-x-3">
             {/** biome-ignore lint/performance/noImgElement: using base64 */}
             <img
@@ -37,50 +47,91 @@ export default function TwitterPreview({ imageUrl }: TwitterPreviewProps) {
             />
             <div className="flex-1">
               <div className="flex items-center space-x-1">
-                <span className="font-bold">Your Name</span>
-                <svg
-                  className="w-4 h-4 text-blue-500"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
+                <span
+                  className="font-bold"
+                  style={{ color: isDark ? "#F7F9F9" : "#0F1419" }}
                 >
+                  Your Name
+                </span>
+                <svg className="w-4 h-4" fill="#1D9BF0" viewBox="0 0 20 20">
                   <path
                     fillRule="evenodd"
                     d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
                     clipRule="evenodd"
                   />
                 </svg>
-                <span className="text-gray-500 text-sm">@username · 1m</span>
+                <span
+                  className="text-sm"
+                  style={{ color: isDark ? "#71767B" : "#536471" }}
+                >
+                  @username · 1m
+                </span>
               </div>
-              <p className="mt-2 text-sm">
+              <p
+                className="mt-2 text-sm"
+                style={{ color: isDark ? "#F7F9F9" : "#0F1419" }}
+              >
                 Just updated my profile picture! What do you think?
               </p>
-              <div className="flex justify-between mt-4 text-gray-500">
-                <MessageCircle className="w-5 h-5 cursor-pointer hover:text-blue-500" />
-                <Repeat2 className="w-5 h-5 cursor-pointer hover:text-green-500" />
-                <Heart className="w-5 h-5 cursor-pointer hover:text-red-500" />
-                <Share className="w-5 h-5 cursor-pointer hover:text-blue-500" />
+              <div
+                className="flex justify-between mt-4"
+                style={{ color: isDark ? "#71767B" : "#536471" }}
+              >
+                <MessageCircle className="w-5 h-5 cursor-pointer hover:text-[#1D9BF0]" />
+                <Repeat2 className="w-5 h-5 cursor-pointer hover:text-[#00BA7C]" />
+                <Heart className="w-5 h-5 cursor-pointer hover:text-[#F91880]" />
+                <Share className="w-5 h-5 cursor-pointer hover:text-[#1D9BF0]" />
               </div>
             </div>
           </div>
         </div>
-        <div className="mt-4 bg-gray-50 rounded-lg p-4">
+        <div
+          className="mt-4 rounded-lg p-4"
+          style={{ backgroundColor: isDark ? "#16181C" : "#F7F9F9" }}
+        >
           <div className="flex items-center space-x-4">
             {/** biome-ignore lint/performance/noImgElement: using base64 */}
             <img
               src={imageUrl}
               alt="Twitter profile large"
-              className="w-24 h-24 rounded-full object-cover border-4 border-white"
+              className="w-24 h-24 rounded-full object-cover border-4"
+              style={{ borderColor: isDark ? "#000000" : "#FFFFFF" }}
             />
             <div>
-              <h3 className="font-bold text-xl">Your Name</h3>
-              <p className="text-gray-500">@username</p>
-              <p className="text-sm mt-1">Your bio goes here</p>
-              <div className="flex space-x-4 mt-2 text-sm text-gray-500">
+              <h3
+                className="font-bold text-xl"
+                style={{ color: isDark ? "#F7F9F9" : "#0F1419" }}
+              >
+                Your Name
+              </h3>
+              <p style={{ color: isDark ? "#71767B" : "#536471" }}>@username</p>
+              <p
+                className="text-sm mt-1"
+                style={{ color: isDark ? "#F7F9F9" : "#0F1419" }}
+              >
+                Your bio goes here
+              </p>
+              <div
+                className="flex space-x-4 mt-2 text-sm"
+                style={{ color: isDark ? "#71767B" : "#536471" }}
+              >
                 <span>
-                  <span className="font-bold text-black">123</span> Following
+                  <span
+                    className="font-bold"
+                    style={{ color: isDark ? "#F7F9F9" : "#0F1419" }}
+                  >
+                    123
+                  </span>{" "}
+                  Following
                 </span>
                 <span>
-                  <span className="font-bold text-black">456</span> Followers
+                  <span
+                    className="font-bold"
+                    style={{ color: isDark ? "#F7F9F9" : "#0F1419" }}
+                  >
+                    456
+                  </span>{" "}
+                  Followers
                 </span>
               </div>
             </div>

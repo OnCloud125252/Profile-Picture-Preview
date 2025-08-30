@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import PreviewGrid from "@/components/previews/PreviewGrid";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import ImageUploader from "@/components/upload/ImageUploader";
 
 export default function Home() {
@@ -9,6 +10,9 @@ export default function Home() {
 
   return (
     <div className="max-w-[96rem] mx-auto px-4 lg:px-12 py-8">
+      <div className="absolute top-4 right-4">
+        <ThemeToggle />
+      </div>
       <div className="text-center mb-8">
         <h1 className="text-4xl font-bold mb-2">Profile Picture Preview</h1>
         <p className="text-muted-foreground">
