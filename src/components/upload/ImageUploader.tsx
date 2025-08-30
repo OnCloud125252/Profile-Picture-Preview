@@ -77,13 +77,15 @@ export default function ImageUploader({ onImageUpload }: ImageUploaderProps) {
         preview ? "bg-muted/50" : "bg-background",
       )}
     >
-      <button
-        type="reset"
-        onClick={clearImage}
-        className="cursor-pointer absolute top-2 right-2 p-1 bg-destructive text-white rounded-md"
-      >
-        <X className="h-4 w-4" />
-      </button>
+      {preview && isEditing && (
+        <button
+          type="reset"
+          onClick={clearImage}
+          className="cursor-pointer absolute top-2 right-2 p-1 bg-destructive text-white rounded-md"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      )}
       {preview && isEditing ? (
         <ImageEditor
           imageUrl={originalImage || preview}

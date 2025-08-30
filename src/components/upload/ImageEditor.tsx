@@ -25,6 +25,32 @@ export default function ImageEditor({
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const operationIdRef = useRef(0);
+  const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Constrain position after scale changes
+  const constrainPosition = useCallback(
+    (pos: { x: number; y: number }, currentScale: number) => {
+      if (!imageRef.current) {
+        return pos;
+      }
+
+      const img = imageRef.current;
+      const scaledWidth = img.width * currentScale;
+      const scaledHeight = img.height * currentScale;
+
+      const minX = Math.min(0, width - scaledWidth);
+      const maxX = Math.max(0, width - scaledWidth);
+      const minY = Math.min(0, height - scaledHeight);
+      const maxY = Math.max(0, height - scaledHeight);
+
+      return {
+        x: Math.max(minX, Math.min(maxX, pos.x)),
+        y: Math.max(minY, Math.min(maxY, pos.y)),
+      };
+    },
+    [width, height],
+  );
 
   // Load image
   useEffect(() => {
@@ -39,17 +65,18 @@ export default function ImageEditor({
       const initialScale = Math.max(scaleX, scaleY);
       setScale(initialScale);
 
-      // Center the image
-      setPosition({
+      // Center the image or constrain if too large
+      const initialPosition = {
         x: (width - img.width * initialScale) / 2,
         y: (height - img.height * initialScale) / 2,
-      });
+      };
+      setPosition(constrainPosition(initialPosition, initialScale));
     };
     img.src = imageUrl;
-  }, [imageUrl, width, height]);
+  }, [imageUrl, width, height, constrainPosition]);
 
-  // Draw image on canvas
-  const drawImage = useCallback(() => {
+  // Draw image on canvas (without exporting)
+  const drawCanvas = useCallback(() => {
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext("2d");
     const img = imageRef.current;
@@ -58,10 +85,6 @@ export default function ImageEditor({
       return;
     }
 
-    // Clear canvas
-    ctx.clearRect(0, 0, width, height);
-
-    // Save context
     ctx.save();
 
     // Draw image with transformations
@@ -71,19 +94,51 @@ export default function ImageEditor({
 
     // Restore context
     ctx.restore();
+  }, [scale, position, width, height]);
+
+  // Export the canvas to base64
+  const exportCanvas = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) {
+      return;
+    }
+
+    // Increment operation ID to track the latest operation
+    const currentOperationId = ++operationIdRef.current;
 
     // Export the edited image
     canvas.toBlob((blob) => {
-      if (blob) {
+      if (!blob) {
+        return;
+      }
+
+      if (currentOperationId === operationIdRef.current) {
         const reader = new FileReader();
+        reader.readAsDataURL(blob);
         reader.onload = (e) => {
           const result = e.target?.result as string;
           onImageEdit(result);
         };
-        reader.readAsDataURL(blob);
       }
     });
-  }, [scale, position, width, height, onImageEdit]);
+  }, [onImageEdit]);
+
+  // Draw and export with debouncing
+  const drawImage = useCallback(() => {
+    drawCanvas();
+
+    if (updateTimeoutRef.current) {
+      clearTimeout(updateTimeoutRef.current);
+    }
+
+    if (isDragging) {
+      updateTimeoutRef.current = setTimeout(() => {
+        exportCanvas();
+      }, 1);
+    } else {
+      exportCanvas();
+    }
+  }, [drawCanvas, exportCanvas, isDragging]);
 
   // Redraw when state changes
   useEffect(() => {
@@ -91,6 +146,15 @@ export default function ImageEditor({
       drawImage();
     }
   }, [drawImage, isLoading]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (updateTimeoutRef.current) {
+        clearTimeout(updateTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Mouse handlers
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -102,22 +166,47 @@ export default function ImageEditor({
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!isDragging) {
+    if (!isDragging || !imageRef.current) {
       return;
     }
 
+    const img = imageRef.current;
+    const scaledWidth = img.width * scale;
+    const scaledHeight = img.height * scale;
+
+    // Calculate boundaries to prevent gaps
+    const minX = Math.min(0, width - scaledWidth);
+    const maxX = Math.max(0, width - scaledWidth);
+    const minY = Math.min(0, height - scaledHeight);
+    const maxY = Math.max(0, height - scaledHeight);
+
+    // Calculate new position
+    const newX = e.clientX - dragStart.x;
+    const newY = e.clientY - dragStart.y;
+
+    // Apply constraints
     setPosition({
-      x: e.clientX - dragStart.x,
-      y: e.clientY - dragStart.y,
+      x: Math.max(minX, Math.min(maxX, newX)),
+      y: Math.max(minY, Math.min(maxY, newY)),
     });
   };
 
   const handleMouseUp = () => {
     setIsDragging(false);
+    // Ensure final position is exported
+    if (updateTimeoutRef.current) {
+      clearTimeout(updateTimeoutRef.current);
+    }
+    exportCanvas();
   };
 
   const handleMouseLeave = () => {
     setIsDragging(false);
+    // Ensure final position is exported
+    if (updateTimeoutRef.current) {
+      clearTimeout(updateTimeoutRef.current);
+    }
+    exportCanvas();
   };
 
   // Touch handlers for mobile
@@ -131,28 +220,51 @@ export default function ImageEditor({
   };
 
   const handleTouchMove = (e: React.TouchEvent<HTMLCanvasElement>) => {
-    if (!isDragging) {
+    if (!isDragging || !imageRef.current) {
       return;
     }
     const touch = e.touches[0];
+    const img = imageRef.current;
+    const scaledWidth = img.width * scale;
+    const scaledHeight = img.height * scale;
 
+    // Calculate boundaries to prevent gaps
+    const minX = Math.min(0, width - scaledWidth);
+    const maxX = Math.max(0, width - scaledWidth);
+    const minY = Math.min(0, height - scaledHeight);
+    const maxY = Math.max(0, height - scaledHeight);
+
+    // Calculate new position
+    const newX = touch.clientX - dragStart.x;
+    const newY = touch.clientY - dragStart.y;
+
+    // Apply constraints
     setPosition({
-      x: touch.clientX - dragStart.x,
-      y: touch.clientY - dragStart.y,
+      x: Math.max(minX, Math.min(maxX, newX)),
+      y: Math.max(minY, Math.min(maxY, newY)),
     });
   };
 
   const handleTouchEnd = () => {
     setIsDragging(false);
+    // Ensure final position is exported
+    if (updateTimeoutRef.current) {
+      clearTimeout(updateTimeoutRef.current);
+    }
+    exportCanvas();
   };
 
   // Zoom handlers
   const handleZoomIn = () => {
-    setScale((prev) => Math.min(prev * 1.2, 5));
+    const newScale = Math.min(scale * 1.2, 5);
+    setScale(newScale);
+    setPosition((prev) => constrainPosition(prev, newScale));
   };
 
   const handleZoomOut = () => {
-    setScale((prev) => Math.max(prev * 0.8, 0.1));
+    const newScale = Math.max(scale * 0.8, 0.1);
+    setScale(newScale);
+    setPosition((prev) => constrainPosition(prev, newScale));
   };
 
   const handleReset = () => {
@@ -165,17 +277,20 @@ export default function ImageEditor({
     const scaleY = height / img.height;
     const initialScale = Math.max(scaleX, scaleY);
     setScale(initialScale);
-    setPosition({
+    const initialPosition = {
       x: (width - img.width * initialScale) / 2,
       y: (height - img.height * initialScale) / 2,
-    });
+    };
+    setPosition(constrainPosition(initialPosition, initialScale));
   };
 
   // Mouse wheel zoom
   const handleWheel = (e: React.WheelEvent<HTMLCanvasElement>) => {
     e.preventDefault();
     const delta = e.deltaY > 0 ? 0.9 : 1.1;
-    setScale((prev) => Math.min(Math.max(prev * delta, 0.1), 5));
+    const newScale = Math.min(Math.max(scale * delta, 0.1), 5);
+    setScale(newScale);
+    setPosition((prev) => constrainPosition(prev, newScale));
   };
 
   return (
