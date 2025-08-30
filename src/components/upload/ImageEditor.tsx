@@ -1,6 +1,6 @@
 "use client";
 
-import { Expand } from "lucide-react";
+import { Download, Expand } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -16,20 +16,20 @@ interface ImageEditorProps {
 export default function ImageEditor({
   imageUrl,
   onImageEdit,
-  width = 400,
-  height = 400,
+  width = 1200,
+  height = 1200,
 }: ImageEditorProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imageRef = useRef<HTMLImageElement | null>(null);
+  const operationIdRef = useRef(0);
+  const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [scale, setScale] = useState(1);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-  const operationIdRef = useRef(0);
-  const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const maxScale = 5;
   const [minScale, setMinScale] = useState(1);
-  const maxScale = 3; // 3x = 300%
+  const [scale, setScale] = useState(1);
 
   // Constrain position after scale changes
   const constrainPosition = useCallback(
@@ -100,6 +100,20 @@ export default function ImageEditor({
     ctx.restore();
   }, [scale, position, width, height]);
 
+  const downloadImage = () => {
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext("2d");
+
+    if (!canvas || !ctx) {
+      return;
+    }
+
+    const link = document.createElement("a");
+    link.href = canvas.toDataURL("image/jpeg");
+    link.download = "whatsapp-profile-picture.jpg";
+    link.click();
+  };
+
   // Export the canvas to base64
   const exportCanvas = useCallback(() => {
     const canvas = canvasRef.current;
@@ -110,21 +124,10 @@ export default function ImageEditor({
     // Increment operation ID to track the latest operation
     const currentOperationId = ++operationIdRef.current;
 
-    // Export the edited image
-    canvas.toBlob((blob) => {
-      if (!blob) {
-        return;
-      }
-
-      if (currentOperationId === operationIdRef.current) {
-        const reader = new FileReader();
-        reader.readAsDataURL(blob);
-        reader.onload = (e) => {
-          const result = e.target?.result as string;
-          onImageEdit(result);
-        };
-      }
-    });
+    if (currentOperationId === operationIdRef.current) {
+      const result = canvas.toDataURL("image/jpeg");
+      onImageEdit(result);
+    }
   }, [onImageEdit]);
 
   // Draw and export with debouncing
@@ -323,7 +326,7 @@ export default function ImageEditor({
             width={width}
             height={height}
             className={cn(
-              "border border-gray-500 rounded-lg",
+              "border border-gray-500 rounded-lg w-full max-w-96 aspect-square",
               isDragging ? "cursor-grabbing" : "cursor-grab",
             )}
             onMouseDown={handleMouseDown}
@@ -357,21 +360,21 @@ export default function ImageEditor({
       <div className="flex flex-col items-center">
         <p className="text-center text-sm text-muted-foreground mb-3">
           Drag to move • Scroll to zoom •{" "}
-          {Math.round(((scale - minScale) / (maxScale - minScale)) * 300)}%
+          {Math.round(((scale - minScale) / (maxScale - minScale)) * 500)}%
         </p>
-        <div className="flex items-center gap-4 w-full max-w-xs mb-2">
-          <span className="text-sm text-muted-foreground min-w-[3rem] text-right">
+        <div className="flex items-center gap-2.5 w-full max-w-xs mb-2.5">
+          <span className="text-sm text-muted-foreground w-10 text-right">
             0%
           </span>
           <Slider
-            value={[((scale - minScale) / (maxScale - minScale)) * 300]}
+            value={[((scale - minScale) / (maxScale - minScale)) * 500]}
             min={0}
-            max={300}
+            max={500}
             step={1}
             onValueChange={(values) => {
               const percent = values[0];
               const newScale =
-                minScale + (percent / 300) * (maxScale - minScale);
+                minScale + (percent / 500) * (maxScale - minScale);
 
               // Calculate center point
               const centerX = width / 2;
@@ -389,20 +392,32 @@ export default function ImageEditor({
             }}
             className="flex-1 cursor-ew-resize"
           />
-          <span className="text-sm text-muted-foreground min-w-[3rem]">
-            300%
+          <span className="text-sm text-muted-foreground w-10 text-left">
+            500%
           </span>
         </div>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={handleReset}
-          className="cursor-pointer"
-        >
-          <Expand className="h-4 w-4" />
-          <span className="ml-2">Reset scale and position</span>
-        </Button>
+        <div className="w-full flex justify-center gap-2 flex-wrap">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleReset}
+            className="cursor-pointer"
+          >
+            <Expand className="h-4 w-4" />
+            <span className="ml-2">Reset scale</span>
+          </Button>
+          <Button
+            type="button"
+            variant="default"
+            size="sm"
+            onClick={downloadImage}
+            className="cursor-pointer"
+          >
+            <Download className="h-4 w-4" />
+            <span className="ml-2">Download cropped image</span>
+          </Button>
+        </div>
       </div>
     </div>
   );
