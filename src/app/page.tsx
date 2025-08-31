@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import PreviewGrid from "@/components/previews/PreviewGrid";
+import AnimatedGitHubIcon from "@/components/ui/AnimatedGitHubIcon";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import ImageUploader from "@/components/upload/ImageUploader";
 
@@ -27,6 +28,9 @@ export default function Home() {
 
   return (
     <div className="max-w-[96rem] mx-auto px-4 lg:px-12 py-8">
+      <div className="absolute top-4 left-4">
+        <AnimatedGitHubIcon />
+      </div>
       <div className="absolute top-4 right-4">
         <ThemeToggle />
       </div>
