@@ -6,7 +6,7 @@ import imageCompression, {
 import { ImagePlus } from "lucide-react";
 import { useCallback, useState } from "react";
 import { cn } from "@/lib/utils";
-import ImageEditor from "./ImageEditor";
+import ImageEditor from "./image-editor";
 
 interface ImageUploaderProps {
   onImageUpload: (imageUrl: string) => void;

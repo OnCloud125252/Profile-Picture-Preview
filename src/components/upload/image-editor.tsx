@@ -4,7 +4,7 @@ import { Download, Expand, Upload } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
-import { useMobileDetector } from "@/hooks/useMobileDetector";
+import { useMobileDetector } from "@/hooks/use-mobile-detector";
 import { cn } from "@/lib/utils";
 
 interface ImageEditorProps {

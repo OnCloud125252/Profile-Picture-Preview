@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import PreviewGrid from "@/components/previews/PreviewGrid";
-import AnimatedGitHubIcon from "@/components/ui/AnimatedGitHubIcon";
+import PreviewGrid from "@/components/previews/preview-grid";
+import AnimatedGitHubIcon from "@/components/ui/animated-github-icon";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
-import ImageUploader from "@/components/upload/ImageUploader";
+import ImageUploader from "@/components/upload/image-uploader";
 
 export default function Home() {
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);

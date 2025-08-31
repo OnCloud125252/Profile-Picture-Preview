@@ -1,14 +1,14 @@
 "use client";
 
 import { ChevronDown } from "lucide-react";
-import DiscordPreview from "./DiscordPreview";
-import FacebookPreview from "./FacebookPreview";
-import GitHubPreview from "./GitHubPreview";
-import InstagramPreview from "./InstagramPreview";
-import LinkedInPreview from "./LinkedInPreview";
-import SlackPreview from "./SlackPreview";
-import TwitterPreview from "./TwitterPreview";
-import WhatsAppPreview from "./WhatsAppPreview";
+import DiscordPreview from "./discord-preview";
+import FacebookPreview from "./facebook-preview";
+import GitHubPreview from "./github-preview";
+import InstagramPreview from "./instagram-preview";
+import LinkedInPreview from "./linkedin-preview";
+import SlackPreview from "./slack-preview";
+import TwitterPreview from "./twitter-preview";
+import WhatsAppPreview from "./whatsapp-preview";
 
 interface PreviewGridProps {
   imageUrl: string;
