@@ -3,7 +3,7 @@
 import imageCompression, {
   Options as ImageCompressionOptions,
 } from "browser-image-compression";
-import { Upload } from "lucide-react";
+import { Upload, X } from "lucide-react";
 import { useCallback, useState } from "react";
 import { cn } from "@/lib/utils";
 import ImageEditor from "./ImageEditor";
@@ -75,6 +75,12 @@ export default function ImageUploader({ onImageUpload }: ImageUploaderProps) {
     }
   };
 
+  // const clearImage = () => {
+  //   setImage(null);
+  //   setIsEditing(false);
+  //   onImageUpload("");
+  // };
+
   const handleImageEdit = (editedImageUrl: string) => {
     onImageUpload(editedImageUrl);
   };
@@ -90,6 +96,15 @@ export default function ImageUploader({ onImageUpload }: ImageUploaderProps) {
         compressing ? "bg-muted/50" : "bg-background",
       )}
     >
+      {/* {isEditing && (
+        <button
+          type="reset"
+          onClick={clearImage}
+          className="cursor-pointer absolute top-2 right-2 p-1 bg-destructive text-white rounded-md"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      )} */}
       {isEditing ? (
         <ImageEditor imageUrl={image || ""} onImageEdit={handleImageEdit} />
       ) : compressing ? (

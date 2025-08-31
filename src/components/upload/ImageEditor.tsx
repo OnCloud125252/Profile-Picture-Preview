@@ -358,9 +358,19 @@ export default function ImageEditor({
       </div>
 
       <div className="flex flex-col items-center">
-        <p className="text-center text-sm text-muted-foreground mb-3">
+        <p className="text-center text-sm text-muted-foreground mb-3 flex items-center gap-2">
           Drag to move • Scroll to zoom •{" "}
           {Math.round(((scale - minScale) / (maxScale - minScale)) * 500)}%
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleReset}
+            className="cursor-pointer h-6 px-1.5 text-xs font-medium"
+          >
+            <Expand className="h-3 w-3" />
+            <span className="ml-1">Reset scale</span>
+          </Button>
         </p>
         <div className="flex items-center gap-2.5 w-full max-w-xs mb-2.5">
           <span className="text-sm text-muted-foreground w-10 text-right">
@@ -397,16 +407,6 @@ export default function ImageEditor({
           </span>
         </div>
         <div className="w-full flex justify-center gap-2 flex-wrap">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={handleReset}
-            className="cursor-pointer"
-          >
-            <Expand className="h-4 w-4" />
-            <span className="ml-2">Reset scale</span>
-          </Button>
           <Button
             type="button"
             variant="default"

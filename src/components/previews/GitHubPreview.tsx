@@ -21,7 +21,7 @@ export default function GitHubPreview({ imageUrl }: GitHubPreviewProps) {
       </CardHeader>
       <CardContent>
         <div
-          className="border rounded-lg p-4 overflow-scroll"
+          className="border rounded-lg p-4 overflow-auto"
           style={{
             backgroundColor: isDark ? "#0D1117" : "#FFFFFF",
             borderColor: isDark ? "#30363D" : "#D0D7DE",

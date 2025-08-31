@@ -63,7 +63,7 @@ export default function InstagramPreview({ imageUrl }: InstagramPreviewProps) {
                 your_username
               </span>
             </div>
-            <Button size="icon" variant="ghost">
+            <Button size="icon" variant="ghost" className="pointer-events-none">
               <svg
                 className="w-5 h-5"
                 fill={isDark ? "#F5F5F5" : "#262626"}
@@ -88,20 +88,20 @@ export default function InstagramPreview({ imageUrl }: InstagramPreviewProps) {
             <div className="flex justify-between mb-3">
               <div className="flex space-x-4">
                 <Heart
-                  className="w-6 h-6 cursor-pointer hover:text-[#ED4956]"
+                  className="w-6 h-6 hover:text-[#ED4956]"
                   style={{ color: isDark ? "#F5F5F5" : "#262626" }}
                 />
                 <MessageCircle
-                  className="w-6 h-6 cursor-pointer"
+                  className="w-6 h-6"
                   style={{ color: isDark ? "#F5F5F5" : "#262626" }}
                 />
                 <Send
-                  className="w-6 h-6 cursor-pointer"
+                  className="w-6 h-6"
                   style={{ color: isDark ? "#F5F5F5" : "#262626" }}
                 />
               </div>
               <Bookmark
-                className="w-6 h-6 cursor-pointer"
+                className="w-6 h-6"
                 style={{ color: isDark ? "#F5F5F5" : "#262626" }}
               />
             </div>
