@@ -1,14 +1,16 @@
 "use client";
 
-import { Download, Expand } from "lucide-react";
+import { Download, Expand, Upload } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
+import { useMobileDetector } from "@/hooks/useMobileDetector";
 import { cn } from "@/lib/utils";
 
 interface ImageEditorProps {
   imageUrl: string;
   onImageEdit: (editedImageUrl: string) => void;
+  onReupload?: () => void;
   width?: number;
   height?: number;
 }
@@ -16,6 +18,7 @@ interface ImageEditorProps {
 export default function ImageEditor({
   imageUrl,
   onImageEdit,
+  onReupload,
   width = 1200,
   height = 1200,
 }: ImageEditorProps) {
@@ -30,6 +33,7 @@ export default function ImageEditor({
   const maxScale = 5;
   const [minScale, setMinScale] = useState(1);
   const [scale, setScale] = useState(1);
+  const { isMobileByFeatures } = useMobileDetector();
 
   // Constrain position after scale changes
   const constrainPosition = useCallback(
@@ -110,7 +114,7 @@ export default function ImageEditor({
 
     const link = document.createElement("a");
     link.href = canvas.toDataURL("image/jpeg");
-    link.download = "whatsapp-profile-picture.jpg";
+    link.download = "profile-picture.jpg";
     link.click();
   };
 
@@ -357,10 +361,13 @@ export default function ImageEditor({
         </div>
       </div>
 
-      <div className="flex flex-col items-center">
-        <p className="text-center text-sm text-muted-foreground mb-3 flex items-center gap-2">
-          Drag to move • Scroll to zoom •{" "}
-          {Math.round(((scale - minScale) / (maxScale - minScale)) * 500)}%
+      <div className="flex flex-col items-center gap-3.5">
+        <p className="text-center text-sm text-muted-foreground flex items-center justify-center gap-2 flex-wrap">
+          <span>
+            {"Drag to move"}
+            {isMobileByFeatures ? " • Pinch to zoom" : " • Scroll to zoom"}
+            {` • ${Math.round(((scale - minScale) / (maxScale - minScale)) * 500)}%`}
+          </span>
           <Button
             type="button"
             variant="outline"
@@ -369,10 +376,10 @@ export default function ImageEditor({
             className="cursor-pointer h-6 px-1.5 text-xs font-medium"
           >
             <Expand className="h-3 w-3" />
-            <span className="ml-1">Reset scale</span>
+            <span className="ml-1 text-foreground">Reset scale</span>
           </Button>
         </p>
-        <div className="flex items-center gap-2.5 w-full max-w-xs mb-2.5">
+        <div className="flex items-center gap-2.5 w-full max-w-xs">
           <span className="text-sm text-muted-foreground w-10 text-right">
             0%
           </span>
@@ -417,6 +424,18 @@ export default function ImageEditor({
             <Download className="h-4 w-4" />
             <span className="ml-2">Download cropped image</span>
           </Button>
+          {onReupload && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={onReupload}
+              className="cursor-pointer"
+            >
+              <Upload className="h-4 w-4" />
+              <span className="ml-2">Upload new image</span>
+            </Button>
+          )}
         </div>
       </div>
     </div>

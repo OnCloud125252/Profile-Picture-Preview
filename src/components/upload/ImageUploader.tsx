@@ -3,7 +3,7 @@
 import imageCompression, {
   Options as ImageCompressionOptions,
 } from "browser-image-compression";
-import { Upload, X } from "lucide-react";
+import { ImagePlus } from "lucide-react";
 import { useCallback, useState } from "react";
 import { cn } from "@/lib/utils";
 import ImageEditor from "./ImageEditor";
@@ -75,14 +75,14 @@ export default function ImageUploader({ onImageUpload }: ImageUploaderProps) {
     }
   };
 
-  // const clearImage = () => {
-  //   setImage(null);
-  //   setIsEditing(false);
-  //   onImageUpload("");
-  // };
-
   const handleImageEdit = (editedImageUrl: string) => {
     onImageUpload(editedImageUrl);
+  };
+
+  const handleReupload = () => {
+    setImage(null);
+    setIsEditing(false);
+    onImageUpload("");
   };
 
   return (
@@ -91,41 +91,38 @@ export default function ImageUploader({ onImageUpload }: ImageUploaderProps) {
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       className={cn(
-        "relative border-2 border-dashed rounded-lg p-8 pb-7 transition-colors",
+        "relative border-2 border-dashed rounded-lg pb-7 transition-colors p-4 md:p-8 ",
         isDragging ? "border-primary bg-primary/5" : "border-border",
         compressing ? "bg-muted/50" : "bg-background",
       )}
     >
-      {/* {isEditing && (
-        <button
-          type="reset"
-          onClick={clearImage}
-          className="cursor-pointer absolute top-2 right-2 p-1 bg-destructive text-white rounded-md"
-        >
-          <X className="h-4 w-4" />
-        </button>
-      )} */}
       {isEditing ? (
-        <ImageEditor imageUrl={image || ""} onImageEdit={handleImageEdit} />
-      ) : compressing ? (
-        <div className="flex flex-col items-center justify-center my-16">
-          <div className="text-center">
-            <p className="text-xl font-medium">Compressing image...</p>
-          </div>
-        </div>
+        <ImageEditor
+          imageUrl={image || ""}
+          onImageEdit={handleImageEdit}
+          onReupload={handleReupload}
+        />
       ) : (
-        <div className="flex flex-col items-center justify-center space-y-4">
-          <Upload className="h-12 w-12 text-muted-foreground" />
-          <div className="text-center">
-            <p className="text-lg font-medium">Drop your image here</p>
-            <p className="text-sm text-muted-foreground">or click to browse</p>
-          </div>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleFileInput}
-            className="absolute inset-0 opacity-0 cursor-pointer"
-          />
+        <div className="flex flex-col items-center justify-center gap-4 aspect-square">
+          {compressing ? (
+            <p className="text-xl font-medium">Compressing image...</p>
+          ) : (
+            <>
+              <ImagePlus className="h-16 w-16 text-muted-foreground" />
+              <div className="text-center">
+                <p className="text-lg font-medium">Drop your image here</p>
+                <p className="text-sm text-muted-foreground">
+                  or click to browse
+                </p>
+              </div>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleFileInput}
+                className="absolute inset-0 opacity-0 cursor-pointer"
+              />
+            </>
+          )}
         </div>
       )}
     </div>

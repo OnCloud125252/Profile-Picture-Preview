@@ -121,7 +121,25 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  @keyframes float-xs {
+    0%,
+    100% {
+      transform: translateY(4px);
+    }
+
+    50% {
+      transform: translateY(-4px);
+    }
+  }
+
+  .animate-float-xs {
+    animation: float-xs 3s ease-in-out infinite;
   }
 }
