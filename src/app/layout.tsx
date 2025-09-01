@@ -6,7 +6,7 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Profile Picture Preview",
+  title: "Preview Profile",
   description: "Preview your profile picture across different platforms",
 };
 
