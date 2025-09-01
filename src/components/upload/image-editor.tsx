@@ -1,6 +1,6 @@
 "use client";
 
-import { Download, Expand, Upload } from "lucide-react";
+import { Download, Undo2, Upload } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -26,6 +26,10 @@ export default function ImageEditor({
   const imageRef = useRef<HTMLImageElement | null>(null);
   const operationIdRef = useRef(0);
   const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const fileSizeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isCalculatingFileSizeRef = useRef(false);
+  const hasPendingFileSizeRef = useRef(false);
+  const [imageFileSize, setImageFileSize] = useState<string>(""); // formatted size
   const [isLoading, setIsLoading] = useState(true);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
@@ -34,6 +38,10 @@ export default function ImageEditor({
   const [minScale, setMinScale] = useState(1);
   const [scale, setScale] = useState(1);
   const { isMobileByFeatures } = useMobileDetector();
+  const [inputImageDimensions, setInputImageDimensions] = useState({
+    width: 0,
+    height: 0,
+  });
 
   // Constrain position after scale changes
   const constrainPosition = useCallback(
@@ -61,26 +69,28 @@ export default function ImageEditor({
 
   // Load image
   useEffect(() => {
-    const img = new Image();
-    img.onload = () => {
-      imageRef.current = img;
+    const image = new Image();
+    image.onload = () => {
+      imageRef.current = image;
       setIsLoading(false);
 
+      setInputImageDimensions({ width: image.width, height: image.height });
+
       // Calculate initial scale to fit image
-      const scaleX = width / img.width;
-      const scaleY = height / img.height;
+      const scaleX = width / image.width;
+      const scaleY = height / image.height;
       const initialScale = Math.max(scaleX, scaleY);
       setScale(initialScale);
       setMinScale(initialScale);
 
       // Center the image or constrain if too large
       const initialPosition = {
-        x: (width - img.width * initialScale) / 2,
-        y: (height - img.height * initialScale) / 2,
+        x: (width - image.width * initialScale) / 2,
+        y: (height - image.height * initialScale) / 2,
       };
       setPosition(constrainPosition(initialPosition, initialScale));
     };
-    img.src = imageUrl;
+    image.src = imageUrl;
   }, [imageUrl, width, height, constrainPosition]);
 
   // Draw image on canvas (without exporting)
@@ -118,7 +128,52 @@ export default function ImageEditor({
     link.click();
   };
 
-  // Export the canvas to base64
+  const performFileSizeCalculation = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) {
+      isCalculatingFileSizeRef.current = false;
+      return;
+    }
+
+    canvas.toBlob((blob) => {
+      if (blob) {
+        const sizeInBytes = blob.size;
+        let formattedSize = "";
+
+        if (sizeInBytes < 1024) {
+          formattedSize = `${sizeInBytes} B`;
+        } else if (sizeInBytes < 1024 * 1024) {
+          formattedSize = `${(sizeInBytes / 1024).toFixed(1)} KB`;
+        } else {
+          formattedSize = `${(sizeInBytes / (1024 * 1024)).toFixed(1)} MB`;
+        }
+
+        setImageFileSize(formattedSize);
+      }
+
+      fileSizeTimeoutRef.current = setTimeout(() => {
+        isCalculatingFileSizeRef.current = false;
+
+        if (hasPendingFileSizeRef.current) {
+          hasPendingFileSizeRef.current = false;
+          isCalculatingFileSizeRef.current = true;
+          performFileSizeCalculation();
+        }
+      }, 1);
+    }, "image/jpeg");
+  }, []);
+
+  const calculateImageFileSize = useCallback(() => {
+    if (isCalculatingFileSizeRef.current) {
+      // Mark that we have a pending calculation
+      hasPendingFileSizeRef.current = true;
+      return;
+    }
+
+    isCalculatingFileSizeRef.current = true;
+    performFileSizeCalculation();
+  }, [performFileSizeCalculation]);
+
   const exportCanvas = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) {
@@ -131,8 +186,9 @@ export default function ImageEditor({
     if (currentOperationId === operationIdRef.current) {
       const result = canvas.toDataURL("image/jpeg");
       onImageEdit(result);
+      calculateImageFileSize();
     }
-  }, [onImageEdit]);
+  }, [onImageEdit, calculateImageFileSize]);
 
   // Draw and export with debouncing
   const drawImage = useCallback(() => {
@@ -196,11 +252,13 @@ export default function ImageEditor({
     };
   }, [scale, position, minScale, width, height, constrainPosition]);
 
-  // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
       if (updateTimeoutRef.current) {
         clearTimeout(updateTimeoutRef.current);
+      }
+      if (fileSizeTimeoutRef.current) {
+        clearTimeout(fileSizeTimeoutRef.current);
       }
     };
   }, []);
@@ -296,7 +354,6 @@ export default function ImageEditor({
 
   const handleTouchEnd = () => {
     setIsDragging(false);
-    // Ensure final position is exported
     if (updateTimeoutRef.current) {
       clearTimeout(updateTimeoutRef.current);
     }
@@ -324,65 +381,61 @@ export default function ImageEditor({
   return (
     <div className="relative">
       <div className="relative flex justify-center mb-4">
-        <div className="relative overflow-hidden rounded-lg">
-          <canvas
-            ref={canvasRef}
-            width={width}
-            height={height}
-            className={cn(
-              "border border-gray-500 rounded-lg w-full max-w-96 aspect-square",
-              isDragging ? "cursor-grabbing" : "cursor-grab",
+        <div className="flex flex-col items-center gap-[0.1rem]">
+          <div className="relative overflow-hidden rounded-lg">
+            <canvas
+              ref={canvasRef}
+              width={width}
+              height={height}
+              className={cn(
+                "border border-gray-500 rounded-lg w-full max-w-96 aspect-square",
+                isDragging ? "cursor-grabbing" : "cursor-grab",
+              )}
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+              onMouseLeave={handleMouseLeave}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+            />
+            <div
+              className="absolute inset-0 rounded-lg pointer-events-none z-40"
+              style={{
+                background: `radial-gradient(farthest-side at center, transparent calc(100%), rgba(90, 90, 90, 0.7) calc(100%))`,
+              }}
+            />
+            <div className="absolute pointer-events-none h-[2px] w-full bg-[rgba(160,160,160,0.5)] top-1/3 -mt-[1px] z-50" />
+            <div className="absolute pointer-events-none h-[2px] w-full bg-[rgba(160,160,160,0.5)] top-2/3 -mt-[1px] z-50" />
+            <div className="absolute pointer-events-none w-[2px] h-full bg-[rgba(160,160,160,0.5)] left-1/3 top-0 -ml-[1px] z-50" />
+            <div className="absolute pointer-events-none w-[2px] h-full bg-[rgba(160,160,160,0.5)] left-2/3 top-0 -ml-[1px] z-50" />
+            <div className="absolute pointer-events-none h-[2px] w-[calc(100%*1.5)] bg-[rgba(160,160,160,0.5)] top-1/2 -mt-[1px] -left-1/4 rotate-45 z-50" />
+            <div className="absolute pointer-events-none h-[2px] w-[calc(100%*1.5)] bg-[rgba(160,160,160,0.5)] top-1/2 -mt-[1px] -left-1/4 -rotate-45 z-50" />
+            {isLoading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-muted/50 rounded-lg">
+                <div className="text-muted-foreground">Loading image...</div>
+              </div>
             )}
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            onMouseLeave={handleMouseLeave}
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
-          />
-          <div
-            className="absolute inset-0 rounded-lg pointer-events-none z-40"
-            style={{
-              background: `radial-gradient(farthest-side at center, transparent calc(100%), rgba(90, 90, 90, 0.7) calc(100%))`,
-            }}
-          />
-          <div className="absolute pointer-events-none h-[2px] w-full bg-[rgba(160,160,160,0.5)] top-1/3 -mt-[1px] z-50" />
-          <div className="absolute pointer-events-none h-[2px] w-full bg-[rgba(160,160,160,0.5)] top-2/3 -mt-[1px] z-50" />
-          <div className="absolute pointer-events-none w-[2px] h-full bg-[rgba(160,160,160,0.5)] left-1/3 top-0 -ml-[1px] z-50" />
-          <div className="absolute pointer-events-none w-[2px] h-full bg-[rgba(160,160,160,0.5)] left-2/3 top-0 -ml-[1px] z-50" />
-          <div className="absolute pointer-events-none h-[2px] w-[calc(100%*1.5)] bg-[rgba(160,160,160,0.5)] top-1/2 -mt-[1px] -left-1/4 rotate-45 z-50" />
-          <div className="absolute pointer-events-none h-[2px] w-[calc(100%*1.5)] bg-[rgba(160,160,160,0.5)] top-1/2 -mt-[1px] -left-1/4 -rotate-45 z-50" />
-          {isLoading && (
-            <div className="absolute inset-0 flex items-center justify-center bg-muted/50 rounded-lg">
-              <div className="text-muted-foreground">Loading image...</div>
-            </div>
-          )}
+          </div>
+          <span className="text-xs text-muted-foreground">
+            {`${inputImageDimensions.width}x${inputImageDimensions.height}px • Drag to move • ${isMobileByFeatures ? "Pinch to zoom" : "Scroll to zoom"}`}
+          </span>
         </div>
       </div>
-
-      <div className="flex flex-col items-center gap-3.5">
-        <p className="text-center text-sm text-muted-foreground flex items-center justify-center gap-2 flex-wrap">
-          <span>
-            {"Drag to move"}
-            {isMobileByFeatures ? " • Pinch to zoom" : " • Scroll to zoom"}
-            {` • ${Math.round(((scale - minScale) / (maxScale - minScale)) * 500)}%`}
-          </span>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={handleReset}
-            className="cursor-pointer h-6 px-1.5 text-xs font-medium"
-          >
-            <Expand className="h-3 w-3" />
-            <span className="ml-1 text-foreground">Reset scale</span>
-          </Button>
-        </p>
-        <div className="flex items-center gap-2.5 w-full max-w-xs">
-          <span className="text-sm text-muted-foreground w-10 text-right">
-            0%
-          </span>
+      <div className="flex flex-col items-center gap-4">
+        <div className="flex flex-col items-center gap-2.5 w-full max-w-xs">
+          <div className="flex items-center justify-between w-full">
+            <span className="text-sm text-foreground w-10 text-left text-nowrap">
+              {`Scale: ${Math.round(((scale - minScale) / (maxScale - minScale)) * 500)}%`}
+            </span>
+            <div
+              className="flex items-center cursor-pointer relative ml-1 group"
+              onClick={handleReset}
+            >
+              <Undo2 className="h-4 w-4 text-muted-foreground -mt-[0.09rem] mr-0.5" />
+              <span className="text-muted-foreground text-xs">Reset</span>
+            </div>
+          </div>
           <Slider
             value={[((scale - minScale) / (maxScale - minScale)) * 500]}
             min={0}
@@ -407,34 +460,41 @@ export default function ImageEditor({
               setScale(newScale);
               setPosition(constrainPosition(newPosition, newScale));
             }}
-            className="flex-1 cursor-ew-resize"
+            className="flex-1 cursor-ew-resize mb-2"
           />
-          <span className="text-sm text-muted-foreground w-10 text-left">
-            500%
-          </span>
         </div>
         <div className="w-full flex justify-center gap-2 flex-wrap">
-          <Button
-            type="button"
-            variant="default"
-            size="sm"
-            onClick={downloadImage}
-            className="cursor-pointer"
-          >
-            <Download className="h-4 w-4" />
-            <span className="ml-2">Download cropped image</span>
-          </Button>
-          {onReupload && (
+          <div className="flex flex-col items-center gap-[0.1rem]">
             <Button
               type="button"
-              variant="outline"
+              variant="default"
               size="sm"
-              onClick={onReupload}
+              onClick={downloadImage}
               className="cursor-pointer"
             >
-              <Upload className="h-4 w-4" />
-              <span className="ml-2">Upload new image</span>
+              <Download className="h-4 w-4" />
+              <span className="ml-2">Download cropped image</span>
             </Button>
+            <span className="text-xs text-muted-foreground">
+              {`1200x1200 • JPG${imageFileSize ? ` • ${imageFileSize}` : ""}`}
+            </span>
+          </div>
+          {onReupload && (
+            <div className="flex flex-col items-center gap-[0.1rem]">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={onReupload}
+                className="cursor-pointer"
+              >
+                <Upload className="h-4 w-4" />
+                <span className="ml-2">Upload new image</span>
+              </Button>
+              <span className="text-xs text-muted-foreground">
+                Changes will be lost !
+              </span>
+            </div>
           )}
         </div>
       </div>

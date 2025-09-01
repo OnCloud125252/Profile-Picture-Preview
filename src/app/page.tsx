@@ -9,34 +9,19 @@ import ImageUploader from "@/components/upload/image-uploader";
 export default function Home() {
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
 
-  // if (uploadedImage) {
-  //   console.log("uploadedImage", uploadedImage);
-
-  //   // convert base64 image to blob
-  //   const convertBase64ToBlob = (base64Image: string) => {
-  //     const byteString = atob(base64Image.split(",")[1]);
-  //     const buffer = new ArrayBuffer(byteString.length);
-  //     const view = new Uint8Array(buffer);
-  //     for (let i = 0; i < byteString.length; i++) {
-  //       view[i] = byteString.charCodeAt(i);
-  //     }
-  //     return new Blob([buffer], { type: "image/jpeg" });
-  //   };
-
-  //   console.log(convertBase64ToBlob(uploadedImage).size / 1024 / 1024);
-  // }
-
   return (
-    <div className="max-w-[96rem] mx-auto px-4 lg:px-12 py-8">
-      <div className="absolute top-4 left-4">
+    <div className="max-w-[96rem] mx-auto px-4 lg:px-12 pb-8 pt-11 sm:p-8">
+      <div className="absolute top-2 left-2 sm:top-4 sm:left-4">
         <AnimatedGitHubIcon />
       </div>
-      <div className="absolute top-4 right-4">
+      <div className="absolute top-2 right-2 sm:top-4 sm:right-4">
         <ThemeToggle />
       </div>
-      <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold mb-2">Profile Picture Preview</h1>
-        <p className="text-muted-foreground">
+      <div className="text-center mb-6 sm:mb-8">
+        <h1 className="text-3xl sm:text-4xl font-bold mb-2">
+          Profile Picture Preview
+        </h1>
+        <p className="text-xs sm:text-sm text-muted-foreground">
           Upload your profile picture and see how it looks across different
           platforms
         </p>

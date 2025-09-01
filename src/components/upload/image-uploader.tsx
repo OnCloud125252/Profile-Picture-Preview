@@ -1,8 +1,9 @@
 "use client";
 
-import imageCompression, {
-  Options as ImageCompressionOptions,
-} from "browser-image-compression";
+import {
+  compress as compressImage,
+  CompressionOptions as ImageCompressionOptions,
+} from "@thaparoyal/image-compression";
 import { ImagePlus } from "lucide-react";
 import { useCallback, useState } from "react";
 import { cn } from "@/lib/utils";
@@ -24,28 +25,54 @@ export default function ImageUploader({ onImageUpload }: ImageUploaderProps) {
       setImage(null);
       setIsEditing(false);
 
-      const options: ImageCompressionOptions = {
-        maxSizeMB: 0.5,
-        maxWidthOrHeight: 1200,
-        useWebWorker: true,
-        fileType: "image/jpeg",
-        initialQuality: 0.5,
-      };
-      try {
-        const compressedFile = await imageCompression(file, options);
+      const imageElement = new Image();
+      const imageUrl = URL.createObjectURL(file);
+      imageElement.src = imageUrl;
 
-        const reader = new FileReader();
-        reader.readAsDataURL(compressedFile);
-        reader.onload = (e) => {
-          const result = e.target?.result as string;
-          setImage(result);
-          onImageUpload(result);
+      await new Promise((resolve) => {
+        imageElement.onload = resolve;
+      });
+
+      const originalDimensions = {
+        width: imageElement.width,
+        height: imageElement.height,
+      };
+
+      const minDimension = Math.min(
+        originalDimensions.width,
+        originalDimensions.height,
+      );
+      const upscaleFactor = 2400 / minDimension;
+
+      const targetDimensions = {
+        width: Math.round(originalDimensions.width * upscaleFactor),
+        height: Math.round(originalDimensions.height * upscaleFactor),
+      };
+
+      const compressionOptions: ImageCompressionOptions = {
+        maxSizeMB: 0.5,
+        maxWidth: targetDimensions.width,
+        maxHeight: targetDimensions.height,
+        preferredFormat: "jpeg",
+        quality: 0.9,
+      };
+
+      try {
+        const compressedFile = await compressImage(file, compressionOptions);
+
+        const fileReader = new FileReader();
+        fileReader.readAsDataURL(compressedFile);
+        fileReader.onload = (event) => {
+          const base64Result = event.target?.result as string;
+          setImage(base64Result);
+          onImageUpload(base64Result);
         };
       } catch (error) {
-        console.error(error);
+        console.error("Image compression failed:", error);
       } finally {
         setCompressing(false);
         setIsEditing(true);
+        URL.revokeObjectURL(imageUrl); // Clean up the object URL
       }
     }
   };
@@ -87,12 +114,16 @@ export default function ImageUploader({ onImageUpload }: ImageUploaderProps) {
 
   return (
     <div
-      onDrop={handleDrop}
+      onDrop={isEditing ? undefined : handleDrop}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       className={cn(
         "relative border-2 border-dashed rounded-lg pb-7 transition-colors p-4 md:p-8 ",
-        isDragging ? "border-primary bg-primary/5" : "border-border",
+        isEditing
+          ? "border-border"
+          : isDragging
+            ? "border-primary bg-primary/5"
+            : "border-border",
         compressing ? "bg-muted/50" : "bg-background",
       )}
     >
