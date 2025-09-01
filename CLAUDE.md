@@ -34,19 +34,28 @@ bun format
 - **Preview Components**: Each platform has its own preview component in `src/components/previews/`
 - **UI Components**: Using shadcn/ui components in `src/components/ui/` with New York style variant
 - **State Management**: Local React state with useState, no global state management
+- **Custom Hooks**: Image manipulation logic extracted to custom hooks (`useImageDrag`, `useImageZoom`)
 
 ### Styling Approach
 - Tailwind CSS v4 with PostCSS plugin
 - CSS variables for theming in `src/app/globals.css`
 - Utility-first approach with `cn()` helper from `src/lib/utils.ts`
-- Dark mode support via class strategy
+- Dark mode support via class strategy with platform-specific colors
 
-### File Upload Pattern
+### File Upload & Image Processing
 The ImageUploader component uses:
 - Drag-and-drop with FileReader API
-- Client-side image processing
+- Client-side image compression using `@thaparoyal/image-compression`
 - Base64 data URLs for image display
-- No server-side image handling
+- Automatic upscaling to ensure minimum 2400px dimension
+- Memory leak prevention with URL.revokeObjectURL
+
+### Image Editor Features
+- Canvas-based image editing with pan and zoom
+- Fixed window debounce for performance optimization
+- Real-time file size calculation with human-readable formatting
+- Touch support for mobile devices
+- Constrained positioning to prevent image gaps
 
 ## Code Style & Tools
 
@@ -61,6 +70,77 @@ The ImageUploader component uses:
 - Strict mode enabled
 - Path alias: `@/*` maps to `./src/*`
 - Check all TypeScript errors before committing
+
+## Coding Standards
+
+### Naming Conventions
+
+#### Variables & Functions
+- **Variables**: camelCase (e.g., `imageElement`, `compressionOptions`)
+- **Constants**: UPPER_SNAKE_CASE (e.g., `DEFAULT_CANVAS_SIZE`, `MAX_SCALE`)
+- **Functions**: camelCase with descriptive verbs (e.g., `handleFileUpload`, `calculateImageFileSize`)
+- **Boolean variables**: Start with is/has/should (e.g., `isLoading`, `hasPendingUpdate`, `shouldCompress`)
+- **Event handlers**: Start with "handle" (e.g., `handleMouseDown`, `handleDragStart`)
+- **Callbacks**: Start with "on" when passed as props (e.g., `onImageEdit`, `onReupload`)
+
+#### React Components & Hooks
+- **Components**: PascalCase (e.g., `ImageEditor`, `PreviewCard`)
+- **Custom Hooks**: Start with "use" in camelCase (e.g., `useImageDrag`, `useMobileDetector`)
+- **Component props interfaces**: ComponentName + "Props" (e.g., `ImageEditorProps`)
+
+#### Types & Interfaces
+- **Interfaces**: PascalCase, prefer singular nouns (e.g., `Dimensions`, `Position`)
+- **Type aliases**: PascalCase (e.g., `ImageFormat`, `ScaleRange`)
+- **Enums**: PascalCase for name, UPPER_SNAKE_CASE for values
+
+### File & Directory Naming
+
+#### Files
+- **Components**: kebab-case.tsx (e.g., `image-editor.tsx`, `preview-card.tsx`)
+- **Hooks**: kebab-case.ts with "use-" prefix (e.g., `use-image-drag.ts`)
+- **Utilities**: kebab-case.ts (e.g., `image-utils.ts`, `format-helpers.ts`)
+- **Types**: kebab-case.types.ts (e.g., `image.types.ts`)
+- **Constants**: kebab-case.constants.ts (e.g., `platform.constants.ts`)
+
+#### Directories
+- Always use kebab-case (e.g., `components/`, `hooks/`, `lib/`)
+- Group related components in subdirectories (e.g., `components/upload/`, `components/previews/`)
+
+### Code Organization
+
+#### Component Structure
+1. Interface/Type definitions
+2. Constants
+3. Component function
+4. Helper functions (prefer extracting to hooks or utils)
+5. Export statement
+
+#### Comments & Documentation
+- Use JSDoc only for complex functions
+- Inline comments only for non-obvious logic
+- Prefer self-documenting code over comments
+- Non-essential comments should be removed
+
+### Best Practices
+
+#### React Patterns
+- Prefer function components with hooks
+- Use `useCallback` for functions passed to child components
+- Use `useMemo` for expensive computations
+- Extract complex logic to custom hooks
+- Keep components focused and single-purpose
+
+#### Performance
+- Use `requestAnimationFrame` for animations and canvas operations
+- Implement debouncing for expensive operations
+- Clean up resources (timers, RAF, object URLs) in cleanup functions
+- Use `React.memo` sparingly and only when proven necessary
+
+#### Error Handling
+- Always handle edge cases (null checks, empty states)
+- Provide meaningful error messages
+- Use try-catch for async operations
+- Gracefully degrade functionality when features unavailable
 
 ## Important Notes
 
