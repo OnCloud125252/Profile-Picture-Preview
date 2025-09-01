@@ -1,7 +1,7 @@
 "use client";
 
 import { Download, Undo2, Upload } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { useMobileDetector } from "@/hooks/use-mobile-detector";
@@ -25,8 +25,8 @@ export default function ImageEditor({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imageRef = useRef<HTMLImageElement | null>(null);
   const operationIdRef = useRef(0);
-  const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const fileSizeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const updateRAFRef = useRef<number | null>(null);
+  const fileSizeRAFRef = useRef<number | null>(null);
   const isCalculatingFileSizeRef = useRef(false);
   const hasPendingFileSizeRef = useRef(false);
   const [imageFileSize, setImageFileSize] = useState<string>(""); // formatted size
@@ -110,22 +110,25 @@ export default function ImageEditor({
     ctx.scale(scale, scale);
     ctx.drawImage(img, 0, 0);
 
-    // Restore context
     ctx.restore();
   }, [scale, position, width, height]);
 
   const downloadImage = () => {
     const canvas = canvasRef.current;
-    const ctx = canvas?.getContext("2d");
+    const ctx = canvas?.getContext("2d", { alpha: false });
 
     if (!canvas || !ctx) {
       return;
     }
 
-    const link = document.createElement("a");
-    link.href = canvas.toDataURL("image/jpeg");
-    link.download = "profile-picture.jpg";
-    link.click();
+    canvas.toBlob((blob) => {
+      if (blob) {
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "profile-picture.jpg";
+        link.click();
+      }
+    });
   };
 
   const performFileSizeCalculation = useCallback(() => {
@@ -151,7 +154,7 @@ export default function ImageEditor({
         setImageFileSize(formattedSize);
       }
 
-      fileSizeTimeoutRef.current = setTimeout(() => {
+      fileSizeRAFRef.current = requestAnimationFrame(() => {
         isCalculatingFileSizeRef.current = false;
 
         if (hasPendingFileSizeRef.current) {
@@ -159,7 +162,7 @@ export default function ImageEditor({
           isCalculatingFileSizeRef.current = true;
           performFileSizeCalculation();
         }
-      }, 1);
+      });
     }, "image/jpeg");
   }, []);
 
@@ -194,14 +197,14 @@ export default function ImageEditor({
   const drawImage = useCallback(() => {
     drawCanvas();
 
-    if (updateTimeoutRef.current) {
-      clearTimeout(updateTimeoutRef.current);
+    if (updateRAFRef.current) {
+      cancelAnimationFrame(updateRAFRef.current);
     }
 
     if (isDragging) {
-      updateTimeoutRef.current = setTimeout(() => {
+      updateRAFRef.current = requestAnimationFrame(() => {
         exportCanvas();
-      }, 1);
+      });
     } else {
       exportCanvas();
     }
@@ -254,11 +257,11 @@ export default function ImageEditor({
 
   useEffect(() => {
     return () => {
-      if (updateTimeoutRef.current) {
-        clearTimeout(updateTimeoutRef.current);
+      if (updateRAFRef.current) {
+        cancelAnimationFrame(updateRAFRef.current);
       }
-      if (fileSizeTimeoutRef.current) {
-        clearTimeout(fileSizeTimeoutRef.current);
+      if (fileSizeRAFRef.current) {
+        cancelAnimationFrame(fileSizeRAFRef.current);
       }
     };
   }, []);
@@ -301,8 +304,8 @@ export default function ImageEditor({
   const handleMouseUp = () => {
     setIsDragging(false);
     // Ensure final position is exported
-    if (updateTimeoutRef.current) {
-      clearTimeout(updateTimeoutRef.current);
+    if (updateRAFRef.current) {
+      cancelAnimationFrame(updateRAFRef.current);
     }
     exportCanvas();
   };
@@ -310,8 +313,8 @@ export default function ImageEditor({
   const handleMouseLeave = () => {
     setIsDragging(false);
     // Ensure final position is exported
-    if (updateTimeoutRef.current) {
-      clearTimeout(updateTimeoutRef.current);
+    if (updateRAFRef.current) {
+      cancelAnimationFrame(updateRAFRef.current);
     }
     exportCanvas();
   };
@@ -354,8 +357,8 @@ export default function ImageEditor({
 
   const handleTouchEnd = () => {
     setIsDragging(false);
-    if (updateTimeoutRef.current) {
-      clearTimeout(updateTimeoutRef.current);
+    if (updateRAFRef.current) {
+      cancelAnimationFrame(updateRAFRef.current);
     }
     exportCanvas();
   };
@@ -390,6 +393,7 @@ export default function ImageEditor({
               className={cn(
                 "border border-gray-500 rounded-lg w-full max-w-96 aspect-square",
                 isDragging ? "cursor-grabbing" : "cursor-grab",
+                "will-change-transform",
               )}
               onMouseDown={handleMouseDown}
               onMouseMove={handleMouseMove}
@@ -418,7 +422,15 @@ export default function ImageEditor({
             )}
           </div>
           <span className="text-xs text-muted-foreground">
-            {`${inputImageDimensions.width}x${inputImageDimensions.height}px • Drag to move • ${isMobileByFeatures ? "Pinch to zoom" : "Scroll to zoom"}`}
+            {useMemo(
+              () =>
+                `${inputImageDimensions.width}x${inputImageDimensions.height}px • Drag to move • ${isMobileByFeatures ? "Pinch to zoom" : "Scroll to zoom"}`,
+              [
+                inputImageDimensions.width,
+                inputImageDimensions.height,
+                isMobileByFeatures,
+              ],
+            )}
           </span>
         </div>
       </div>
@@ -426,7 +438,11 @@ export default function ImageEditor({
         <div className="flex flex-col items-center gap-2.5 w-full max-w-xs">
           <div className="flex items-center justify-between w-full">
             <span className="text-sm text-foreground w-10 text-left text-nowrap">
-              {`Scale: ${Math.round(((scale - minScale) / (maxScale - minScale)) * 500)}%`}
+              {useMemo(
+                () =>
+                  `Scale: ${Math.round(((scale - minScale) / (maxScale - minScale)) * 500)}%`,
+                [scale, minScale, maxScale],
+              )}
             </span>
             <div
               className="flex items-center cursor-pointer relative ml-1 group"
@@ -476,7 +492,11 @@ export default function ImageEditor({
               <span className="ml-2">Download cropped image</span>
             </Button>
             <span className="text-xs text-muted-foreground">
-              {`1200x1200 • JPG${imageFileSize ? ` • ${imageFileSize}` : ""}`}
+              {useMemo(
+                () =>
+                  `1200x1200 • JPG${imageFileSize ? ` • ${imageFileSize}` : ""}`,
+                [imageFileSize],
+              )}
             </span>
           </div>
           {onReupload && (
